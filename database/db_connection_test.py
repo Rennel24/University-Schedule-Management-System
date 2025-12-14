@@ -1,17 +1,21 @@
 import mysql.connector
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  
 
 try:
     conn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",  
-        database="university_schedule_db"  
+        host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        database=os.getenv("DB_NAME")
     )
 
     cursor = conn.cursor()
     cursor.execute("SHOW TABLES;")
 
-    print("Connected successfully! \nTables in database:")
+    print("Connected successfully!\nTables in database:")
     for (table,) in cursor.fetchall():
         print("-", table)
 

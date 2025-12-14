@@ -1,13 +1,7 @@
--- Insert colleges first
-INSERT INTO colleges (college_id, college_name) VALUES
-(1, 'COE'),
-(2, 'CET'),
-(3, 'CAFAD'),
-(4, 'CICS');
-
--- Then insert admins
-INSERT INTO admins (admin_name, username, password, college_id) VALUES
-('John Santos', 'coeadmin', 'admin123', 1),
-('Maria Reyes', 'cetadmin', 'admin123', 2),
-('Anna Cruz', 'cafadadmin', 'admin123', 3),
-('Mark Delos', 'cicsadmin', 'admin123', 4);
+INSERT INTO sections (section_name, program_id) VALUES
+('BSCS 1101', (SELECT program_id FROM programs WHERE program_name='BSCS')),
+('BSCS 2101', (SELECT program_id FROM programs WHERE program_name='BSCS')),
+('BSIT 3101', (SELECT program_id FROM programs WHERE program_name='BSIT')),
+('BSCS 3101', (SELECT program_id FROM programs WHERE program_name='BSCS')),
+('BSIT 4101', (SELECT program_id FROM programs WHERE program_name='BSIT')),
+('BSCS 4101', (SELECT program_id FROM programs WHERE program_name='BSCS'));

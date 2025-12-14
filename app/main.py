@@ -1,7 +1,6 @@
 import tkinter as tk
 from screens.welcome_screen import WelcomeScreen
 from screens.login_screen import LoginScreen  
-from screens.dashboard_module import DashboardScreen
 from screens.schedule_module import ScheduleScreen  
 
 class App(tk.Tk):

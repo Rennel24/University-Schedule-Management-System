@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, PhotoImage, messagebox
 from datetime import datetime
 import mysql.connector
+from PIL import Image, ImageTk
 
 
 def connect_db():
@@ -9,7 +10,7 @@ def connect_db():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="",  # Update with your password
+        password="",  
         database="university_schedule_db"
     )
 
@@ -53,29 +54,44 @@ class ScheduleScreen(tk.Frame):
 
     # ---------------- TOP BARS ----------------
     def create_top_bars(self):
+        # --- Top Frame ---
         self.top_frame = tk.Frame(self, bg="#890d0d", height=80)
         self.top_frame.pack(fill="x", side="top")
 
+        # --- Logo ---
         try:
-            self.logo_image = PhotoImage(file=r"assets/logo_top.png")
-            tk.Label(self.top_frame, image=self.logo_image, bg="#890d0d").pack(side="left", padx=20, pady=10)
+            img = Image.open(r"assets/cics_background.png")
+            img = img.resize((70, 70), Image.LANCZOS)  
+            self.logo_image = ImageTk.PhotoImage(img)
+            self.logo = tk.Label(self.top_frame, image=self.logo_image, bg="#890d0d")
         except:
-            tk.Label(self.top_frame, text="🏫", bg="#890d0d", fg="white", font=("Arial", 36)).pack(side="left", padx=20, pady=10)
+            self.logo = tk.Label(self.top_frame, text="🏫", bg="#890d0d", fg="white", font=("Arial", 36))
+        self.logo.grid(row=0, column=0, sticky="w", padx=20, pady=5)
 
-        tk.Label(self.top_frame, text="Alangilan Campus Academic Schedule System",
-                 bg="#890d0d", fg="white", font=("Times New Roman", 28, "bold")).pack(side="left", padx=10)
+        # --- Title ---
+        self.title_label = tk.Label(self.top_frame, text="Campus Academic Schedule Management System",
+                                    bg="#890d0d", fg="white", font=("Times New Roman", 28, "bold"))
+        self.title_label.grid(row=0, column=1, sticky="w", padx=10)
 
-        logout_btn = tk.Button(self.top_frame, text="Logout", bg="#ff4c4c", fg="white",
-                               font=("Arial", 12, "bold"), cursor="hand2", command=self.logout)
-        logout_btn.pack(side="right", padx=20, pady=20)
+        # --- Logout Button ---
+        self.logout_btn = tk.Button(self.top_frame, text="Logout", bg="#ff4c4c", fg="white",
+                                    font=("Arial", 12, "bold"), cursor="hand2", command=self.logout)
+        self.logout_btn.grid(row=0, column=2, sticky="e", padx=20, pady=20)
 
+        # --- Make title column expand ---
+        self.top_frame.columnconfigure(1, weight=1)
+
+        # --- Top Bar 2 ---
         self.top_bar2 = tk.Frame(self, bg="#b22222", height=40)
         self.top_bar2.pack(fill="x", side="top")
+
         tk.Label(self.top_bar2, text="Schedule Management",
-                 bg="#b22222", fg="white", font=("Arial", 14, "bold")).place(relx=0.5, rely=0.5, anchor="center")
+                bg="#b22222", fg="white", font=("Arial", 14, "bold")).place(relx=0.5, rely=0.5, anchor="center")
 
         self.datetime_label = tk.Label(self.top_bar2, bg="#b22222", fg="white", font=("Arial", 14))
         self.datetime_label.pack(side="right", padx=20)
+
+
 
     # ---------------- SIDEBAR ----------------
     def create_sidebar(self):
@@ -114,19 +130,27 @@ class ScheduleScreen(tk.Frame):
         tk.Button(self.search_frame, text="Filter", bg="#4a90e2", fg="white",
                   font=("Arial", 12, "bold"), cursor="hand2", command=self.apply_filter).pack(side="left", padx=(6, 0))
 
-    # ---------------- TABLE ----------------
+ 
+   # ---------------- TABLE SECTION ----------------
     def create_table_section(self):
-        self.table_frame = tk.Frame(self, bg="#f8f8f8")
-        self.table_frame.pack(padx=20, pady=(10, 0), fill="both", expand=True)
+        self.table_frame = tk.Frame(self, bg="#f8f8f8", height=350)  # taller table
+        self.table_frame.pack(padx=20, pady=(5, 0), fill="x")  # small top margin
 
         columns = ["schedule_id", "section", "program", "course_code", "course_name",
-                   "professor", "day", "start_time", "end_time", "room"]
-        self.tree = ttk.Treeview(self.table_frame, columns=columns, show="headings", selectmode="browse")
+                "professor", "day", "start_time", "end_time", "room"]
+        self.tree = ttk.Treeview(
+            self.table_frame,
+            columns=columns,
+            show="headings",
+            selectmode="browse",
+            height=12  
+        )
+
         for col in columns:
             self.tree.heading(col, text=col.title().replace("_", " "))
-            # give schedule_id narrower column
             width = 80 if col == "schedule_id" else 120
             self.tree.column(col, width=width, anchor="center")
+
         self.tree.pack(fill="both", expand=True)
         self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
 
@@ -135,63 +159,67 @@ class ScheduleScreen(tk.Frame):
         self.tree.configure(yscrollcommand=vsb.set)
         vsb.pack(side='right', fill='y')
 
+
     # ---------------- INPUT FIELDS ----------------
     def create_input_fields(self):
         self.input_frame = tk.Frame(self, bg="#f8f8f8")
-        self.input_frame.pack(padx=20, pady=(10, 0), fill="x")
+        self.input_frame.pack(padx=20, pady=(5, 5), fill="x")  # keep relative to table
 
         self.entries = {}
+        combo_width = 35
+        label_font = ("Arial", 10)
+        row_vertical_gap = 10  # increase vertical gap between input rows
 
-        # columns layout
-        col1 = tk.Frame(self.input_frame, bg="#f8f8f8")
-        col2 = tk.Frame(self.input_frame, bg="#f8f8f8")
-        col3 = tk.Frame(self.input_frame, bg="#f8f8f8")
-        col1.pack(side="left", padx=10, fill="y")
-        col2.pack(side="left", padx=10, fill="y")
-        col3.pack(side="left", padx=10, fill="y")
+        layout = [
+            ("Section", "Day", "Room"),
+            ("Program", "Time Start", None),
+            ("Course Code", "Time End", None),
+            ("Course Name", "Professor", None)
+        ]
 
-        # labels + comboboxes (initially empty lists, we'll populate from DB)
-        fields_col1 = ["Section", "Program", "Course Code"]
-        fields_col2 = ["Course Name", "Day", "Time Start", "Time End"]
-        fields_col3 = ["Professor", "Room"]
+        for row, (field_left, field_mid, field_right) in enumerate(layout):
+            # LEFT COLUMN
+            tk.Label(self.input_frame, text=f"{field_left}:", bg="#f8f8f8",
+                    font=label_font, anchor="w").grid(row=row, column=0, padx=(0,5), pady=row_vertical_gap, sticky="w")
+            cb_left = ttk.Combobox(self.input_frame, state="readonly", values=[], width=combo_width)
+            cb_left.grid(row=row, column=1, padx=(0,15), pady=row_vertical_gap, sticky="w")
+            self.entries[field_left] = cb_left
 
-        for f in fields_col1:
-            tk.Label(col1, text=f + ":", bg="#f8f8f8", font=("Arial", 12)).pack(anchor="w")
-            cb = ttk.Combobox(col1, values=[], state="readonly")
-            cb.pack(pady=5, fill="x")
-            self.entries[f] = cb
-
-        for f in fields_col2:
-            tk.Label(col2, text=f + ":", bg="#f8f8f8", font=("Arial", 12)).pack(anchor="w")
-            if f == "Time Start":
-                cb = ttk.Combobox(col2, values=self.time_start_values, state="readonly")
-                cb.current(0)
-            elif f == "Time End":
-                cb = ttk.Combobox(col2, values=self.time_end_values, state="readonly")
-                cb.current(0)
+            # MIDDLE COLUMN
+            tk.Label(self.input_frame, text=f"{field_mid}:", bg="#f8f8f8",
+                    font=label_font, anchor="w").grid(row=row, column=2, padx=(0,5), pady=row_vertical_gap, sticky="w")
+            if field_mid == "Time Start":
+                cb_mid = ttk.Combobox(self.input_frame, values=self.time_start_values,
+                                    state="readonly", width=combo_width)
+                cb_mid.current(0)
+            elif field_mid == "Time End":
+                cb_mid = ttk.Combobox(self.input_frame, values=self.time_end_values,
+                                    state="readonly", width=combo_width)
+                cb_mid.current(0)
             else:
-                cb = ttk.Combobox(col2, values=[], state="readonly")
-            cb.pack(pady=5, fill="x")
-            self.entries[f] = cb
+                cb_mid = ttk.Combobox(self.input_frame, state="readonly", values=[], width=combo_width)
+            cb_mid.grid(row=row, column=3, padx=(0,15), pady=row_vertical_gap, sticky="w")
+            self.entries[field_mid] = cb_mid
 
-        # bind start -> update end options
-        self.time_start_combo = self.entries["Time Start"]
-        self.time_end_combo = self.entries["Time End"]
-        self.time_start_combo.bind("<<ComboboxSelected>>", self.update_time_end_options)
+            # RIGHT COLUMN
+            if field_right:
+                tk.Label(self.input_frame, text=f"{field_right}:", bg="#f8f8f8",
+                        font=label_font, anchor="w").grid(row=row, column=4, padx=(0,5), pady=row_vertical_gap, sticky="w")
+                cb_right = ttk.Combobox(self.input_frame, state="readonly", values=[], width=combo_width)
+                cb_right.grid(row=row, column=5, padx=(0,15), pady=row_vertical_gap, sticky="w")
+                self.entries[field_right] = cb_right
 
-        for f in fields_col3:
-            tk.Label(col3, text=f + ":", bg="#f8f8f8", font=("Arial", 12)).pack(anchor="w")
-            cb = ttk.Combobox(col3, values=[], state="readonly")
-            cb.pack(pady=5, fill="x")
-            self.entries[f] = cb
+        # Time linking
+        self.time_start_combo = self.entries.get("Time Start")
+        self.time_end_combo = self.entries.get("Time End")
+        if self.time_start_combo and self.time_end_combo:
+            self.time_start_combo.bind("<<ComboboxSelected>>", self.update_time_end_options)
 
-        # quick reference
-        self.room_entry = self.entries["Room"]
 
     # ---------------- ACTION BUTTONS ----------------
     def create_action_buttons(self):
         self.button_frame = tk.Frame(self, bg="#f8f8f8")
-        self.button_frame.pack(pady=10)
+        self.button_frame.pack(side="bottom", pady=12)  # pinned near bottom
 
         btns = {
             "Save": self.save_schedule,
@@ -206,11 +234,14 @@ class ScheduleScreen(tk.Frame):
                 text=text,
                 bg="#890d0d",
                 fg="white",
-                font=("Arial", 12, "bold"),
-                width=10,
+                font=("Arial", 10, "bold"),
+                width=10,  # integer
+                height=1,  # integer
                 cursor="hand2",
                 command=cmd
-            ).pack(side="left", padx=10)
+            ).pack(side="left", padx=8)
+
+
 
     # ---------------- MENU ACTIONS ----------------
     def menu_action(self, menu_name):
@@ -225,13 +256,13 @@ class ScheduleScreen(tk.Frame):
     def load_dropdowns_static(self):
         """Populate comboboxes with static values."""
         
-        programs = ["BSIT", "BSCS", "BSECE"]
-        sections = ["BSIT 2101", "BSIT 2102", "BSCS 2201"]
-        course_codes = ["IT 211", "CS 121", "MATH101"]
-        course_names = ["Data Structures", "Programming 1", "Calculus 1"]
-        professors = ["Joana Reyes", "De Castro Mariel", "Juan Dela Cruz"]
-        rooms = ["Room 201", "Room 202", "Lab 1"]
-        days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+        programs = ["BSIT", "BSCS"]
+        sections = ["BSIT 1101", "BSCS 1101" ,"BSIT 2101", "BSCS 2101" ,"BSIT 3101", "BSCS 3101", "BSIT 4101","BSCS 4101"]
+        course_codes = ["IT 111","IT 211", "CS 121", "NTT 401"]
+        course_names = ["Introduction to Computing","Data Structures and Algorithms", "Object-Oriented Programming", "Computer Programming", "Advanced Computer Programming", "Computer Networking"]
+        professors = ["Joana Reyes", "De Castro Mariel", "Juan Dela Cruz", "Sofia Mendoza", "Patricia Gomez", "Lucia Fernandez"]
+        rooms = ["Room 101", "Room 201", "Room 202", "Lab 1"]
+        days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
         # Populate comboboxes
         self.entries["Program"]["values"] = programs
@@ -412,7 +443,7 @@ class ScheduleScreen(tk.Frame):
     def get_or_create_section(self, section_name, program_name, cursor):
         program_id, _ = self.get_or_create_program(program_name, cursor)
         cursor.execute("SELECT section_id FROM sections WHERE LOWER(section_name)=LOWER(%s) AND program_id=%s",
-                       (section_name, program_id))
+        (section_name, program_id))
         row = cursor.fetchone()
         if row:
             return row[0], False
@@ -557,7 +588,7 @@ class ScheduleScreen(tk.Frame):
             messagebox.showerror("Error", "All fields are required.")
             return
 
-        # prepare times: both TIME string for SQL comparison and time object for insert
+        # prepare times
         t_start_obj = datetime.strptime(inputs["Time Start"], "%I:%M %p").time()
         t_end_obj = datetime.strptime(inputs["Time End"], "%I:%M %p").time()
         t_start_str = datetime.strptime(inputs["Time Start"], "%I:%M %p").strftime("%H:%M:%S")
@@ -574,7 +605,7 @@ class ScheduleScreen(tk.Frame):
             room_id, _ = self.get_or_create_room(inputs["Room"], cursor)
             day_id = self.get_or_create_day(inputs["Day"], cursor)
 
-            # check conflicts (use HH:MM:SS strings)
+            # check conflicts
             if self.check_schedule_conflict(section_id, room_id, prof_id, day_id, t_start_str, t_end_str, cursor):
                 conn.rollback()
                 return
@@ -591,6 +622,10 @@ class ScheduleScreen(tk.Frame):
             self.load_schedule_data()
             self.clear_fields()
 
+            # --- REFRESH DASHBOARD ---
+            if hasattr(self.master, "load_dashboard_data"):
+                self.master.load_dashboard_data()
+
         except mysql.connector.Error as err:
             conn.rollback()
             messagebox.showerror("Database Error", f"Failed to save schedule:\n{err}")
@@ -600,7 +635,7 @@ class ScheduleScreen(tk.Frame):
 
     # ---------------- UPDATE SCHEDULE ----------------
     def update_schedule(self):
-        """Update an existing selected schedule (requires a row selected)."""
+        """Update the selected schedule only if no conflicts exist."""
         if not self.selected_schedule_id:
             messagebox.showinfo("Select", "Please select a schedule from the table to update.")
             return
@@ -623,53 +658,19 @@ class ScheduleScreen(tk.Frame):
         cursor = conn.cursor()
 
         try:
-            # get/create fks (same transaction)
+            # get/create foreign keys
             section_id, _ = self.get_or_create_section(inputs["Section"], inputs["Program"], cursor)
             course_id, _ = self.get_or_create_course(inputs["Course Code"], inputs["Course Name"], inputs["Program"], cursor)
             prof_id, _ = self.get_or_create_professor(inputs["Professor"], cursor)
             room_id, _ = self.get_or_create_room(inputs["Room"], cursor)
             day_id = self.get_or_create_day(inputs["Day"], cursor)
 
-    
-            cursor.execute("""
-                SELECT s.schedule_id, r.room_name, TIME_FORMAT(s.start_time, '%h:%i %p'), TIME_FORMAT(s.end_time, '%h:%i %p')
-                FROM schedules s LEFT JOIN rooms r ON s.room_id = r.room_id
-                WHERE s.section_id=%s AND s.day_id=%s AND (s.start_time < %s AND s.end_time > %s) AND s.schedule_id != %s
-                LIMIT 1
-            """, (section_id, day_id, t_end_str, t_start_str, self.selected_schedule_id))
-            sec = cursor.fetchone()
-            if sec:
-                messagebox.showerror("Conflict", f"Section conflict — this section already has a schedule in room '{sec[1]}' from {sec[2]} to {sec[3]}.")
+            # check conflicts
+            if self.check_schedule_conflict(section_id, room_id, prof_id, day_id, t_start_str, t_end_str, cursor):
                 conn.rollback()
                 return
 
-            # ROOM conflict excluding current id
-            cursor.execute("""
-                SELECT s.schedule_id, sec.section_name, TIME_FORMAT(s.start_time, '%h:%i %p'), TIME_FORMAT(s.end_time, '%h:%i %p')
-                FROM schedules s LEFT JOIN sections sec ON s.section_id = sec.section_id
-                WHERE s.room_id=%s AND s.day_id=%s AND (s.start_time < %s AND s.end_time > %s) AND s.schedule_id != %s
-                LIMIT 1
-            """, (room_id, day_id, t_end_str, t_start_str, self.selected_schedule_id))
-            room = cursor.fetchone()
-            if room:
-                messagebox.showerror("Conflict", f"Room conflict — room is already booked for section '{room[1]}' from {room[2]} to {room[3]}.")
-                conn.rollback()
-                return
-
-            # PROFESSOR conflict excluding current id
-            cursor.execute("""
-                SELECT s.schedule_id, sec.section_name, TIME_FORMAT(s.start_time, '%h:%i %p'), TIME_FORMAT(s.end_time, '%h:%i %p')
-                FROM schedules s LEFT JOIN sections sec ON s.section_id = sec.section_id
-                WHERE s.professor_id=%s AND s.day_id=%s AND (s.start_time < %s AND s.end_time > %s) AND s.schedule_id != %s
-                LIMIT 1
-            """, (prof_id, day_id, t_end_str, t_start_str, self.selected_schedule_id))
-            prof = cursor.fetchone()
-            if prof:
-                messagebox.showerror("Conflict", f"Professor conflict — assigned professor already teaches section '{prof[1]}' from {prof[2]} to {prof[3]}.")
-                conn.rollback()
-                return
-
-            # If no conflicts, perform update
+            # perform update
             cursor.execute("""
                 UPDATE schedules
                 SET section_id=%s, course_id=%s, professor_id=%s, room_id=%s, day_id=%s, start_time=%s, end_time=%s
@@ -682,69 +683,16 @@ class ScheduleScreen(tk.Frame):
             self.load_schedule_data()
             self.clear_fields()
 
+            # --- REFRESH DASHBOARD ---
+            if hasattr(self.master, "load_dashboard_data"):
+                self.master.load_dashboard_data()
+
         except mysql.connector.Error as err:
             conn.rollback()
             messagebox.showerror("Database Error", f"Failed to update schedule:\n{err}")
         finally:
             cursor.close()
             conn.close()
-
-    def update_schedule(self):
-            """Update the selected schedule only if no conflicts exist."""
-            if not self.selected_schedule_id:
-                messagebox.showinfo("Select", "Please select a schedule from the table to update.")
-                return
-
-            if not self.validate_time():
-                return
-
-            inputs = {k: v.get().strip() for k, v in self.entries.items()}
-            if not all(inputs.values()):
-                messagebox.showerror("Error", "All fields are required.")
-                return
-
-            # prepare times
-            t_start_obj = datetime.strptime(inputs["Time Start"], "%I:%M %p").time()
-            t_end_obj = datetime.strptime(inputs["Time End"], "%I:%M %p").time()
-            t_start_str = datetime.strptime(inputs["Time Start"], "%I:%M %p").strftime("%H:%M:%S")
-            t_end_str = datetime.strptime(inputs["Time End"], "%I:%M %p").strftime("%H:%M:%S")
-
-            conn = connect_db()
-            cursor = conn.cursor()
-
-            try:
-                # get or create foreign keys
-                section_id, _ = self.get_or_create_section(inputs["Section"], inputs["Program"], cursor)
-                course_id, _ = self.get_or_create_course(inputs["Course Code"], inputs["Course Name"], inputs["Program"], cursor)
-                prof_id, _ = self.get_or_create_professor(inputs["Professor"], cursor)
-                room_id, _ = self.get_or_create_room(inputs["Room"], cursor)
-                day_id = self.get_or_create_day(inputs["Day"], cursor)
-
-                # CHECK CONFLICTS (exclude current schedule)
-                if self.check_schedule_conflict(section_id, room_id, prof_id, day_id, t_start_str, t_end_str, cursor):
-                    conn.rollback()
-                    return
-
-                # If no conflicts, perform update
-                cursor.execute("""
-                    UPDATE schedules
-                    SET section_id=%s, course_id=%s, professor_id=%s, room_id=%s, day_id=%s, start_time=%s, end_time=%s
-                    WHERE schedule_id=%s
-                """, (section_id, course_id, prof_id, room_id, day_id, t_start_obj, t_end_obj, self.selected_schedule_id))
-
-                conn.commit()
-                messagebox.showinfo("Success", "Schedule updated successfully!")
-                self.load_dropdowns_static()
-                self.load_schedule_data()
-                self.clear_fields()
-
-            except mysql.connector.Error as err:
-                conn.rollback()
-                messagebox.showerror("Database Error", f"Failed to update schedule:\n{err}")
-            finally:
-                cursor.close()
-                conn.close()
-
 
     # ---------------- DELETE SCHEDULE ----------------
     def delete_schedule(self):
@@ -763,7 +711,7 @@ class ScheduleScreen(tk.Frame):
             self.load_schedule_data()
             self.clear_fields()
 
-            # <-- ADD THIS LINE TO REFRESH DASHBOARD -->
+            # --- REFRESH DASHBOARD ---
             if hasattr(self.master, "load_dashboard_data"):
                 self.master.load_dashboard_data()
 

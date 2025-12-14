@@ -1,2 +1,2 @@
 # University-Schedule-Management-System
-A Python–MySQL based system for managing university class schedules with conflict detection and college-level access control.
+Python desktop app for managing university class schedules. Built with Tkinter and MySQL, it allows admins to handle courses, sections, professors, and rooms, with secure login, schedule CRUD operations, filtering, sorting, and automatic conflict detection.

@@ -1,15 +1,18 @@
 import tkinter as tk
-from tkinter import PhotoImage, messagebox
+from tkinter import messagebox
+from PIL import Image, ImageTk, ImageEnhance
 import mysql.connector
+
 
 def connect_db():
     """Helper function to connect to the MySQL database."""
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="",  # update if you set MySQL password
+        password="",
         database="university_schedule_db"
     )
+
 
 class LoginScreen(tk.Frame):
     def __init__(self, master, switch_screen_callback=None):
@@ -19,58 +22,178 @@ class LoginScreen(tk.Frame):
 
         self.master.configure(bg="#f8f8f8")
         self.master.state("zoomed")
+
         self.create_widgets()
 
     def create_widgets(self):
-        # Header
-        self.header_frame = tk.Frame(self, bg="#890d0d", height=100)
+    # ========================= BACKGROUND IMAGE =========================
+        try:
+            bg_image = Image.open(r"E:\UniversityScheduleSystem\assets\background.png")
+
+            # Resize to screen size
+            screen_width = self.master.winfo_screenwidth()
+            screen_height = self.master.winfo_screenheight()
+            bg_image = bg_image.resize((screen_width, screen_height), Image.LANCZOS)
+            opacity_value = 0.35
+            # Convert image to RGBA to support alpha fade
+            bg_image = bg_image.convert("RGBA")
+            alpha = bg_image.split()[3]
+            alpha = ImageEnhance.Brightness(alpha).enhance(opacity_value)
+            bg_image.putalpha(alpha)
+
+            # Create final PhotoImage
+            self.bg_photo = ImageTk.PhotoImage(bg_image)
+
+            # Background label
+            self.bg_label = tk.Label(self, image=self.bg_photo, bg="#890d0d")
+            self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+         
+        except:
+            self.configure(bg="#f0f0f0")  # fallback solid color
+
+        # ========================= HEADER =========================
+        self.header_frame = tk.Frame(self, bg="#be0b0b", height=100)
         self.header_frame.pack(fill="x", side="top")
 
-        try:
-            self.logo_image = tk.PhotoImage(file=r"E:\UniversityScheduleSystem\assets\icons\BatStateU-NEU-Logo.png")
-            self.logo = tk.Label(self.header_frame, image=self.logo_image, bg="#890d0d")
-            self.logo.pack(side="left", padx=20, pady=20)
-        except Exception as e:
-            print("Logo not found:", e)
-            self.logo = tk.Label(self.header_frame, text="🏫", bg="#890d0d", fg="white", font=("Arial", 38))
-            self.logo.pack(side="left", padx=20, pady=20)
+        self.header_frame.columnconfigure(0, weight=1)
+        self.header_frame.columnconfigure(1, weight=10)
+        self.header_frame.columnconfigure(2, weight=1)
 
+        # --- LEFT LOGO ---
+        try:
+            img = Image.open(r"E:\UniversityScheduleSystem\assets\cics_background.png")
+            img = img.resize((98, 97), Image.LANCZOS)
+            self.logo_image = ImageTk.PhotoImage(img)
+            self.logo = tk.Label(self.header_frame, image=self.logo_image, bg="#be0b0b")
+        except:
+            self.logo = tk.Label(
+                self.header_frame,
+                text="🏫",
+                bg="#890d0d",
+                fg="white",
+                font=("Segoe UI", 32, "bold")
+            )
+        self.logo.grid(row=0, column=0, sticky="w", padx=20, pady=10)
+
+        # --- CENTER TITLE ---
         self.title_label = tk.Label(
             self.header_frame,
-            text="Alangilan Campus Academic Schedule System",
-            bg="#890d0d",
+            text="Campus Schedule Management System",
+            bg="#be0b0b",
             fg="white",
-            font=("Times New Roman", 38, "bold")
+            font=("Georgia", 33, "bold"),
+            anchor="center",
+            justify="center"
         )
-        self.title_label.pack(side="left", pady=20, padx=10)
+        self.title_label.grid(row=0, column=1, sticky="nsew", padx=10)
 
-        # Login Card
-        self.card_frame = tk.Frame(self, bg="white", width=500, height=350,
-                                   highlightthickness=1, highlightbackground="#cccccc")
+        # ========================= LOGIN CARD =========================
+        self.card_frame = tk.Frame(
+            self,
+            bg="white",
+            width=480,
+            height=330,
+            highlightthickness=1,
+            highlightbackground="#cccccc"
+        )
         self.card_frame.place(relx=0.5, rely=0.55, anchor="center")
         self.card_frame.pack_propagate(False)
 
-        tk.Label(self.card_frame, text="ADMIN", bg="white", fg="black",
-                 font=("Arial", 26, "bold")).pack(pady=(25, 20))
+        tk.Label(
+            self.card_frame,
+            text="ADMIN LOGIN",
+            bg="white",
+            fg="black",
+            font=("Segoe UI", 22, "bold")
+        ).pack(pady=(20, 10))
 
-        tk.Label(self.card_frame, text="USERNAME:", bg="white", fg="black",
-                 font=("Arial", 15, "bold")).pack(anchor="w", padx=80)
-        self.username_entry = tk.Entry(self.card_frame, bg="#868686", fg="white",
-                                       font=("Arial", 14), relief="flat")
-        self.username_entry.pack(pady=(5, 20), ipady=5, padx=80, fill="x")
+        # ---------- USERNAME ----------
+        tk.Label(
+            self.card_frame,
+            text="USERNAME",
+            bg="white",
+            fg="black",
+            font=("Segoe UI", 12, "bold")
+        ).pack(anchor="w", padx=50)
 
-        tk.Label(self.card_frame, text="PASSWORD:", bg="white", fg="black",
-                 font=("Arial", 15, "bold")).pack(anchor="w", padx=80)
-        self.password_entry = tk.Entry(self.card_frame, bg="#868686", fg="white",
-                                       font=("Arial", 14), relief="flat", show="*")
-        self.password_entry.pack(pady=(5, 30), ipady=5, padx=80, fill="x")
+        self.username_entry = tk.Entry(
+            self.card_frame,
+            bg="#e6e6e6",
+            fg="black",
+            font=("Segoe UI", 12),
+            relief="flat",
+            highlightthickness=1,
+            highlightbackground="#bbbbbb",
+            width=28
+        )
+        self.username_entry.pack(pady=(5, 15), ipady=5, padx=50, fill="x")
 
-        self.login_button = tk.Button(self.card_frame, text="LOGIN",
-                                      bg="#890d0d", fg="white",
-                                      font=("Arial", 20, "bold"), relief="flat",
-                                      cursor="hand2", command=self.login)
-        self.login_button.pack(pady=(5, 15))
+        # ---------- PASSWORD ----------
+        tk.Label(
+            self.card_frame,
+            text="PASSWORD",
+            bg="white",
+            fg="black",
+            font=("Segoe UI", 12, "bold")
+        ).pack(anchor="w", padx=50)
 
+        self.password_entry = tk.Entry(
+            self.card_frame,
+            bg="#e6e6e6",
+            fg="black",
+            font=("Segoe UI", 12),
+            relief="flat",
+            highlightthickness=1,
+            highlightbackground="#bbbbbb",
+            width=28,
+            show="*"
+        )
+        self.password_entry.pack(pady=(5, 20), ipady=5, padx=50, fill="x")
+
+        # ---------- LOGIN BUTTON ----------
+        self.login_button = tk.Button(
+            self.card_frame,
+            text="LOGIN",
+            bg="#890d0d",
+            fg="white",
+            font=("Segoe UI", 10, "bold"),
+            width=12,
+            height=1,
+            relief="flat",
+            cursor="hand2",
+            command=self.login
+        )
+        self.login_button.pack(pady=(5, 5))
+
+        # Enter key binds to login
+        self.master.bind("<Return>", lambda e: self.login())
+
+        # ========================= BACK BUTTON =========================
+        self.back_button = tk.Button(
+            self,
+            text="Back",
+            bg="#d60000",                
+            fg="#FFFFFF",
+            font=("Segoe UI", 12, "bold"), 
+            relief="flat",
+            cursor="hand2",
+            activebackground="#bfbfbf",    
+            activeforeground="black",
+            bd=0,                        
+            highlightthickness=0,
+            padx=15,                      
+            pady=8,                        
+            command=self.go_back
+        )
+        self.back_button.place(x=20, rely=1, y=-20, anchor="sw")
+
+
+    # ========================= NAVIGATION =========================
+    def go_back(self):
+        if self.switch_screen_callback:
+            self.switch_screen_callback("welcome")
+
+    # ========================= LOGIN FUNCTION =========================
     def login(self):
         username = self.username_entry.get().strip()
         password = self.password_entry.get().strip()
