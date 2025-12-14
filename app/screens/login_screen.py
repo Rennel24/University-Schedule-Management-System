@@ -28,7 +28,7 @@ class LoginScreen(tk.Frame):
     def create_widgets(self):
     # ========================= BACKGROUND IMAGE =========================
         try:
-            bg_image = Image.open(r"E:\UniversityScheduleSystem\assets\background.png")
+            bg_image = Image.open(r"assets\background.png")
 
             # Resize to screen size
             screen_width = self.master.winfo_screenwidth()
@@ -61,7 +61,7 @@ class LoginScreen(tk.Frame):
 
         # --- LEFT LOGO ---
         try:
-            img = Image.open(r"E:\UniversityScheduleSystem\assets\cics_background.png")
+            img = Image.open(r"assets\cics_background.png")
             img = img.resize((98, 97), Image.LANCZOS)
             self.logo_image = ImageTk.PhotoImage(img)
             self.logo = tk.Label(self.header_frame, image=self.logo_image, bg="#be0b0b")
