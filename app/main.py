@@ -27,10 +27,10 @@ class App(tk.Tk):
         self.current_screen.pack(fill="both", expand=True)
 
     def show_dashboard_screen(self, admin_data=None):
-        from screens.dashboard_module import DashboardScreen  # Now works
+        from screens.dashboard_module import DashboardScreen  
         if self.current_screen:
             self.current_screen.destroy()
-        self.current_screen = DashboardScreen(
+            self.current_screen = DashboardScreen(
             self,
             switch_screen_callback=self.switch_screen,
             admin_data=admin_data

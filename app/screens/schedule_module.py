@@ -228,18 +228,7 @@ class ScheduleScreen(tk.Frame):
             "Delete": self.delete_schedule
         }
 
-        for text, cmd in btns.items():
-            tk.Button(
-                self.button_frame,
-                text=text,
-                bg="#890d0d",
-                fg="white",
-                font=("Arial", 10, "bold"),
-                width=10,  # integer
-                height=1,  # integer
-                cursor="hand2",
-                command=cmd
-            ).pack(side="left", padx=8)
+        
 
 
 
